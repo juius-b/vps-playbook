@@ -1,0 +1,10 @@
+---
+- gather_facts: false
+
+  collections:
+    - nextcloud.admin
+
+  tasks:
+    - name: deploy nextcloud and dependencies
+      include_role:
+        name: install_nextcloud
