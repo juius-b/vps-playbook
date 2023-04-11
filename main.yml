@@ -1,5 +1,5 @@
 ---
-- gather_facts: false
+- hosts: all
 
   collections:
     - nextcloud.admin
