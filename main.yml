@@ -1,4 +1,5 @@
 ---
+- name: Configure VPS.
 - hosts: all
 
   collections:
