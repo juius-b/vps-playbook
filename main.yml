@@ -1,11 +1,26 @@
 ---
-- name: Configure VPS.
-- hosts: all
+- name: Add user with sudo permissions
+  ansible.builtin.user:
+    name: {{ user }}
+    groups: su, sudo
+    append: yes
+    generate_ssh_key: yes
+    ssh_key_file: {{ key_file }}
 
-  collections:
-    - nextcloud.admin
+- name: Harden SSH
+  roles:
+    - devsec.hardening.ssh-hardening
+  vars:
+    ssh_server_ports:
+      - [{{ port }}]
+  ansible.builtin.meta: flush_handlers
 
-  tasks:
-    - name: deploy nextcloud and dependencies
-      include_role:
-        name: install_nextcloud
+- name: Reset connection with new sudo user and hardened port
+  ansible.builtin.set_fact:
+    ansible_port: {{ port }}
+    ansible_user: {{ user}}
+    ansible_private_key_file: {{ key_file }}
+  ansible.builtin.meta: reset_connection
+
+- name: Test new SSH port
+  ansible.builtin.ping:
