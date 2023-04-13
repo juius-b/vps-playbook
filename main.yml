@@ -1,31 +1,45 @@
 ---
-- name: Import variables
-  vars_files: default.vars.yml
-  ansible.builtin.include_vars:
+- name: Configure the VPS
+
+  vars_files:
+    - default.vars.yml
     - vault.yml
-    - vars.yml
 
-- name: Add user with sudo permissions
-  ansible.builtin.user:
-    name: {{ user }}
-    groups: su, sudo
-    append: yes
-    generate_ssh_key: yes
-    ssh_key_file: {{ key_file }}
+  pre_tasks:
+    - name: Include playbook variables
+      ansible.builtin.include_vars: vars.yml
 
-- name: Harden SSH
-  roles:
-    - devsec.hardening.ssh-hardening
-  vars:
-    ssh_server_ports: [{{ port }}]
-  ansible.builtin.meta: flush_handlers
 
-- name: Reset connection with new sudo user and hardened port
-  ansible.builtin.set_fact:
-    ansible_port: {{ port }}
-    ansible_user: {{ user}}
-    ansible_private_key_file: {{ key_file }}
-  ansible.builtin.meta: reset_connection
+  tasks:
+    - name: Add user with sudo permissions
+      ansible.builtin.user:
+        name: "{{ user }}"
+        groups: su, sudo
+        append: yes
+        generate_ssh_key: yes
+        ssh_key_file: "{{ key_file }}"
 
-- name: Test new SSH port
-  ansible.builtin.ping:
+    - name: Harden SSH
+      roles:
+      - devsec.hardening.ssh-hardening
+      vars:
+        ssh_server_ports: "[22, {{ port }}]"
+
+    - name: Make hardening SSH take effect immediately
+      ansible.builtin.meta: flush_handlers
+    
+    - name: Reset connection with new sudo user and hardened port
+      ansible.builtin.set_fact:
+        ansible_port: "{{ port }}"
+        ansible_user: "{{ user}}"
+        ansible_private_key_file: "{{ key_file }}"
+      ansible.builtin.meta: reset_connection
+    
+    - name: Narrow down allowed SSH ports to only the hardened one
+      roles:
+        - devsec.hardening.ssh-hardening
+      vars:
+        ssh_server_ports: "[{{ port }}]"
+
+    - name: Make further hardening SSH take effect immediately
+      ansible.builtin.meta: flush_handlers
