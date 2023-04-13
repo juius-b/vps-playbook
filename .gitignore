@@ -1,3 +1,5 @@
+vars.yml
+
 # Vagrant
 .vagrant/
 Vagrantfile

@@ -1,4 +1,10 @@
 ---
+- name: Import variables
+  vars_files: default.vars.yml
+  ansible.builtin.include_vars:
+    - vault.yml
+    - vars.yml
+
 - name: Add user with sudo permissions
   ansible.builtin.user:
     name: {{ user }}
@@ -11,8 +17,7 @@
   roles:
     - devsec.hardening.ssh-hardening
   vars:
-    ssh_server_ports:
-      - [{{ port }}]
+    ssh_server_ports: [{{ port }}]
   ansible.builtin.meta: flush_handlers
 
 - name: Reset connection with new sudo user and hardened port
