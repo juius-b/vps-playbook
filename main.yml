@@ -15,17 +15,18 @@
         groups: su, sudo
         append: true
 
-  collections:
-    - devsec.hardening
-  roles:
-    - os_hardening
-    - ssh_hardening
-
-  tasks:
     - name: Change connection details to the hardened ones
       ansible.builtin.set_fact:
         ansible_port: "{{ port }}"
         ansible_user: "{{ user }}"
 
+  collections:
+    - devsec.hardening
+
+  roles:
+    - os_hardening
+    - ssh_hardening
+
+  tasks:
     - name: Test new connection
       ansible.builtin.ping:
