@@ -8,24 +8,31 @@
   pre_tasks:
     - name: Include playbook variables
       ansible.builtin.include_vars: vars.yml
+      ignore_errors: true
 
     - name: Add user with sudo permissions
       ansible.builtin.user:
         name: "{{ user }}"
-        groups: su, sudo
+        groups: sudo
         append: true
+        password: "{{ password|password_hash('sha512') }}"
+      become: true
 
-    - name: Change connection details to the hardened ones
+    - name: Update connection details with new user
       ansible.builtin.set_fact:
-        ansible_port: "{{ port }}"
         ansible_user: "{{ user }}"
+        ansible_password: "{{ password }}"
+        ansible_become_password: "{{ password }}"
+
+    - name: Reset connection
+      ansible.builtin.meta: reset_connection
 
   collections:
     - devsec.hardening
 
   roles:
-    - os_hardening
-    - ssh_hardening
+    - { role: os_hardening, become: yes }
+    - { role: ssh_hardening, become: yes }
 
   tasks:
     - name: Test new connection
