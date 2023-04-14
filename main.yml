@@ -10,12 +10,19 @@
       ansible.builtin.include_vars: vars.yml
       ignore_errors: true
 
+    # TODO: Make idempotent
     - name: Add user with sudo permissions
       ansible.builtin.user:
         name: "{{ user }}"
         groups: sudo
         append: true
         password: "{{ password|password_hash('sha512') }}"
+      become: true
+
+    - name: Add SSH authorized key
+      ansible.posix.authorized_key:
+        user: "{{ user }}"
+        key: "{{ lookup('ansible.builtin.file', key_path) }}"
       become: true
 
     - name: Update connection details with new user
@@ -31,9 +38,5 @@
     - devsec.hardening
 
   roles:
-    - { role: os_hardening, become: yes }
-    - { role: ssh_hardening, become: yes }
-
-  tasks:
-    - name: Test new connection
-      ansible.builtin.ping:
+    - {role: os_hardening, become: true}
+    - {role: ssh_hardening, become: true}

@@ -1,5 +1,7 @@
 ---
+# TODO: Move this to default dir
 user: gaveral
+key_path: "~/.ssh/id_rsa.pub"
 
 ## devsec.hardening.ssh_hardening
 # ports on which ssh-server should listen
