@@ -1,6 +1,5 @@
 ---
-- name: Configure the VPS
-  hosts: all
+- hosts: all
 
   vars_files:
     - default.vars.yml
@@ -15,33 +14,18 @@
         name: "{{ user }}"
         groups: su, sudo
         append: true
-        generate_ssh_key: true
-        ssh_key_file: "{{ key_file }}"
 
-    - name: Harden SSH
-      ansible.builtin.include_role:
-        name: devsec.hardening.ssh-hardening
-      vars:
-        ssh_server_ports: "[22, {{ port }}]"
+  collections:
+    - devsec.hardening
+  roles:
+    - os_hardening
+    - ssh_hardening
 
-    - name: Make hardening SSH take effect immediately
-      ansible.builtin.meta: flush_handlers
-
+  tasks:
     - name: Change connection details to the hardened ones
       ansible.builtin.set_fact:
         ansible_port: "{{ port }}"
-        ansible_user: "{{ user}}"
-        ansible_private_key_file: "{{ key_file }}"
+        ansible_user: "{{ user }}"
 
-    - name: Reset connection
-      ansible.builtin.meta: reset_connection
-
-    - name: Narrow down allowed SSH ports to only the hardened one
-      ansible.builtin.include_role:
-        name: devsec.hardening.ssh-hardening
-      vars:
-        ssh_server_ports: "[{{ port }}]"
-
-  tasks:
     - name: Test new connection
       ansible.builtin.ping:
