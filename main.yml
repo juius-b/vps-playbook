@@ -19,7 +19,7 @@
         ssh_key_file: "{{ key_file }}"
 
     - name: Harden SSH
-      include_role:
+      ansible.builtin.include_role:
         name: devsec.hardening.ssh-hardening
       vars:
         ssh_server_ports: "[22, {{ port }}]"
@@ -37,7 +37,7 @@
       ansible.builtin.meta: reset_connection
 
     - name: Narrow down allowed SSH ports to only the hardened one
-      include_role:
+      ansible.builtin.include_role:
         name: devsec.hardening.ssh-hardening
       vars:
         ssh_server_ports: "[{{ port }}]"
