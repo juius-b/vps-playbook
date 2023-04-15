@@ -1,8 +1,9 @@
 ---
-# TODO: Move this to default dir
-user: gaveral
+# user: gaveral
+# password: Faraday
 key_path: "~/.ssh/id_rsa.pub"
 
-## devsec.hardening.ssh_hardening
+# devsec.hardening.ssh_hardening
+#
 # ports on which ssh-server should listen
-ssh_server_ports: ["22"] # sshd
+ssh_server_ports: ["22"]  # sshd

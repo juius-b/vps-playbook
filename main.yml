@@ -3,12 +3,10 @@
 
   vars_files:
     - default.vars.yml
-    - vault.yml
 
   pre_tasks:
     - name: Include playbook variables
       ansible.builtin.include_vars: vars.yml
-      ignore_errors: true
 
     # TODO: Make idempotent
     - name: Add user with sudo permissions
