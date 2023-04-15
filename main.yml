@@ -36,5 +36,6 @@
     - devsec.hardening
 
   roles:
-    - {role: os_hardening, become: true}
-    - {role: ssh_hardening, become: true}
+    - {role: nextcloud.admin.install_nextcloud, become: true}
+#    - {role: os_hardening, become: true}
+#    - {role: ssh_hardening, become: true}

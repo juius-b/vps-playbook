@@ -1,4 +1,5 @@
 vars.yml
+nextcloud_instances/
 
 # Vagrant
 .vagrant/
