@@ -1,9 +1,57 @@
 ---
-# user: gaveral
-# password: Faraday
+# user: gaveral  # mandatory
+# password: Faraday  # mandatory
 key_path: "~/.ssh/id_rsa.pub"
+
+
+# nextcloud.admin.install_nextcloud
+#
+# [NEXTCLOUD CONFIG]
+# nextcloud_trusted_domain:
+#   - "{{ ansible_fqdn }}"
+#   - "{{ ansible_default_ipv4.address }}"
+
+nextcloud_websrv: "nginx"  # "apache2"/"nginx"
+# nextcloud_admin_pwd: "secret"
+
+## Custom nextcloud settings
+## https://docs.nextcloud.com/server/stable/admin_manual/configuration_server/config_sample_php_parameters.html
+nextcloud_config_settings:
+  - { name: "overwritehost", value: "{{ nextcloud_trusted_domain | first }}" }
+  - { name: "overwriteprotocol", value: "https" }
+
+# [DATABASE]
+# nextcloud_db_pwd: "secret"
+
+# [TLS] parameters used in the apache2 & nginx templates
+nextcloud_tls_cert_method: "self-signed"  # self-signed/signed/installed
+# nextcloud_tls_cert: /path/to/cert
+# nextcloud_tls_cert_key: /path/to/cert/key
+# nextcloud_tls_cert_chain: /path/to/cert/chain
+# cert_path: /path/where/cert/to/copy   # Default: /etc/ssl/
+# nextcloud_tls_chain_file: /path/to/cert/chain/chain.pem
+# nextcloud_tls_cert_file: /path/to/cert/cert.crt
+# nextcloud_tls_cert_key_file: /path/to/cert/key/cert.key
+# nextcloud_tls_src_chain: /path/to/cert/chain
+# nextcloud_tls_src_cert: /path/to/cert
+# nextcloud_tls_src_cert_key: /path/to/cert/key
+
+# [SYSTEM]
+# nextcloud_mysql_root_pwd: "secret"
+
 
 # devsec.hardening.ssh_hardening
 #
 # ports on which ssh-server should listen
 ssh_server_ports: ["22"]  # sshd
+
+# devsec.hardening.nginx_hardening
+nginx_add_header:
+  # avoid clickjacking
+  - X-Frame-Options SAMEORIGIN
+  # disable content-type sniffing
+  - X-Content-Type-Options nosniff
+  # XSS filter
+  - X-XSS-Protection "1; mode=block"
+#  - Strict-Transport-Security max-age=15768000
+  - Content-Security-Policy "script-src 'self'; object-src 'self'"

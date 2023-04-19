@@ -7,6 +7,7 @@
     - name: Import task for adding sudo SSH user
       ansible.builtin.import_tasks: tasks/sudo_ssh_user.yml
 
+    # Workaround for php packages installation issues of install_nextcloud role
     - name: Backup existing systemd config
       ansible.builtin.copy:
         remote_src: true
@@ -24,20 +25,25 @@
       become: true
       notify: Force systemd to reread configs
 
-#  collections:
-#    - devsec.hardening
-#
+  collections:
+    - devsec.hardening
+
   roles:
     - {role: nextcloud.admin.install_nextcloud, become: true}
+    - role: nginx_hardening
+      become: true
+      when: nextcloud_websrv == "nginx"
 #    - {role: os_hardening, become: true}
-#    - {role: ssh_hardening, become: true}
-#
-#  tasks:
-#    - name: Import other tasks
-#      ansible.builtin.import_tasks:
-#        - tasks/
-#        - tasks/ufw.yml
+    - {role: ssh_hardening, become: true}
 
+  tasks:
+    - name: Import task for configuring fail2ban
+      ansible.builtin.import_tasks: tasks/fail2ban.yml
+
+    - name: Import task for configuring ufw
+      ansible.builtin.import_tasks: tasks/ufw.yml
+
+  # Continuation of workaround
   post_tasks:
     - name: Restore systemd config
       ansible.builtin.copy:
