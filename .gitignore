@@ -1,4 +1,8 @@
-vars.yml
+# Ansible
+**/vault_*
+roles/
+
+# Potential result of nextcloud_install role
 nextcloud_instances/
 
 # Vagrant

@@ -1,41 +1,54 @@
 ---
 - hosts: all
-
-  vars_files:
-    - default.vars.yml
+  vars:
+    systemd_config: /etc/systemd/system.conf
 
   pre_tasks:
-    - name: Include playbook variables
-      ansible.builtin.include_vars: vars.yml
+    - name: Import task for adding sudo SSH user
+      ansible.builtin.import_tasks: tasks/sudo_ssh_user.yml
 
-    - name: Add user with sudo permissions
-      ansible.builtin.user:
-        name: "{{ user }}"
-        groups: sudo
-        append: true
-        password: "{{ password|password_hash('sha512') }}"
-        update_password: "on_create"
+    - name: Backup existing systemd config
+      ansible.builtin.copy:
+        remote_src: true
+        src: "{{ systemd_config }}"
+        dest: "{{ systemd_config }}.bak"
+        mode: preserve
       become: true
 
-    - name: Add SSH authorized key for sudo user
-      ansible.posix.authorized_key:
-        user: "{{ user }}"
-        key: "{{ lookup('ansible.builtin.file', key_path) }}"
+    - name: Disable start rate limiting for systemd units
+      ansible.builtin.lineinfile:
+        path: "{{ systemd_config }}"
+        regexp: "^DefaultStartLimitIntervalSec="
+        line: "DefaultStartLimitIntervalSec=0"
+        state: present
       become: true
+      notify: Force systemd to reread configs
 
-    - name: Update connection details with new user
-      ansible.builtin.set_fact:
-        ansible_user: "{{ user }}"
-        ansible_password: "{{ password }}"
-        ansible_become_password: "{{ password }}"
-
-    - name: Reset connection
-      ansible.builtin.meta: reset_connection
-
-  collections:
-    - devsec.hardening
-
+#  collections:
+#    - devsec.hardening
+#
   roles:
     - {role: nextcloud.admin.install_nextcloud, become: true}
 #    - {role: os_hardening, become: true}
 #    - {role: ssh_hardening, become: true}
+#
+#  tasks:
+#    - name: Import other tasks
+#      ansible.builtin.import_tasks:
+#        - tasks/
+#        - tasks/ufw.yml
+
+  post_tasks:
+    - name: Restore systemd config
+      ansible.builtin.copy:
+        remote_src: true
+        src: "{{ systemd_config }}.bak"
+        dest: "{{ systemd_config }}"
+      become: true
+      notify: Force systemd to reread configs
+
+  handlers:
+    - name: Force systemd to reread configs
+      ansible.builtin.systemd:
+        daemon_reload: true
+      become: true

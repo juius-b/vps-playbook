@@ -1,0 +1,25 @@
+---
+- name: Add user with sudo permissions
+  ansible.builtin.user:
+    name: "{{ user }}"
+    groups: sudo
+    append: true
+    password: "{{ password|password_hash('sha512') }}"
+    update_password: "on_create"
+  become: true
+
+- name: Add SSH authorized key for sudo user
+  ansible.posix.authorized_key:
+    user: "{{ user }}"
+    key: "{{ lookup('ansible.builtin.file', key_path) }}"
+  become: true
+
+- name: Update connection details with new user
+  ansible.builtin.set_fact:
+    ansible_user: "{{ user }}"
+    ansible_password: "{{ password }}"
+    ansible_become_password: "{{ password }}"
+
+- name: Reset connection
+  ansible.builtin.meta: reset_connection
+
