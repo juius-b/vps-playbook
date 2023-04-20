@@ -25,18 +25,34 @@
       become: true
       notify: Force systemd to reread configs
 
+    - name: Install nginx
+      ansible.builtin.package:
+        name: "nginx"
+        state: present
+      become: true
+      when: nextcloud_websrv == "nginx"
+
   collections:
     - devsec.hardening
 
   roles:
-    - {role: nextcloud.admin.install_nextcloud, become: true}
+    - {role: os_hardening, become: true}
+    - {role: ssh_hardening, become: true}
     - role: nginx_hardening
       become: true
       when: nextcloud_websrv == "nginx"
-#    - {role: os_hardening, become: true}
-    - {role: ssh_hardening, become: true}
+    - {role: nextcloud.admin.install_nextcloud, become: true}
 
   tasks:
+
+    - name: Remove shared memory zone
+      ansible.builtin.lineinfile:
+        path: "{{ nginx_configuration_dir }}/conf.d/90.hardening.conf"
+        regexp: "^limit_conn"
+        state: absent
+      become: true
+      when: nextcloud_websrv == "nginx"
+
     - name: Import task for configuring fail2ban
       ansible.builtin.import_tasks: tasks/fail2ban.yml
 

@@ -17,14 +17,20 @@ nextcloud_websrv: "nginx"  # "apache2"/"nginx"
 ## Custom nextcloud settings
 ## https://docs.nextcloud.com/server/stable/admin_manual/configuration_server/config_sample_php_parameters.html
 nextcloud_config_settings:
-  - { name: "overwritehost", value: "{{ nextcloud_trusted_domain | first }}" }
-  - { name: "overwriteprotocol", value: "https" }
+  - {name: "overwriteprotocol", value: "https"}
+  # - {name: "overwritewebroot", value: "/nextcloud"}
+  # - {name: "overwritehost", value: "{{ nextcloud_trusted_domain | first }}"}
+  # - {name: "overwritehost", value: "nextcloud.{{ nextcloud_trusted_domain | first }}"}
+  # - {name: "overwritehost", value: "{{ nextcloud_trusted_domain | first }}:8443"}
+  # - {name: "overwrite.cli.url", value: "https://{{ nextcloud_trusted_domain | first }}/nextcloud"}
+  # - {name: "overwrite.cli.url", value: "https://nextcloud.{{ nextcloud_trusted_domain | first }}"}
 
 # [DATABASE]
 # nextcloud_db_pwd: "secret"
 
 # [TLS] parameters used in the apache2 & nginx templates
 nextcloud_tls_cert_method: "self-signed"  # self-signed/signed/installed
+nextcloud_tls_dhparam: "{{ nginx_configuration_dir }}/dh{{ nginx_dh_size }}.pem"
 # nextcloud_tls_cert: /path/to/cert
 # nextcloud_tls_cert_key: /path/to/cert/key
 # nextcloud_tls_cert_chain: /path/to/cert/chain
@@ -53,5 +59,5 @@ nginx_add_header:
   - X-Content-Type-Options nosniff
   # XSS filter
   - X-XSS-Protection "1; mode=block"
-#  - Strict-Transport-Security max-age=15768000
+  #  - Strict-Transport-Security max-age=15768000
   - Content-Security-Policy "script-src 'self'; object-src 'self'"
