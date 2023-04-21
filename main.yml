@@ -24,7 +24,7 @@
         state: present
       notify: Force systemd to reread configs
 
-    # Requirement of nginx_hardening roles
+    # Requirement of nginx_hardening role
     - name: Install nginx
       ansible.builtin.package:
         name: "nginx"
@@ -35,16 +35,16 @@
     - devsec.hardening
 
   roles:
-    - role: os_hardening
     - role: ssh_hardening
+    - role: nextcloud.admin.install_nextcloud
+    - role: os_hardening
     - role: nginx_hardening
+      when: nextcloud_websrv == "nginx"
     - role: fail2ban
     - role: ufw
-      when: nextcloud_websrv == "nginx"
-    - role: nextcloud.admin.install_nextcloud
 
   tasks:
-    # Introduced by nginx hardening
+    # Introduced by nginx hardening role
     - name: Remove shared memory zone
       ansible.builtin.lineinfile:
         path: "{{ nginx_configuration_dir }}/conf.d/90.hardening.conf"
