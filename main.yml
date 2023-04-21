@@ -2,6 +2,7 @@
 - hosts: all
   vars:
     systemd_config: /etc/systemd/system.conf
+  become: true
 
   pre_tasks:
     - name: Import task for adding sudo SSH user
@@ -14,7 +15,6 @@
         src: "{{ systemd_config }}"
         dest: "{{ systemd_config }}.bak"
         mode: preserve
-      become: true
 
     - name: Disable start rate limiting for systemd units
       ansible.builtin.lineinfile:
@@ -22,42 +22,35 @@
         regexp: "^DefaultStartLimitIntervalSec="
         line: "DefaultStartLimitIntervalSec=0"
         state: present
-      become: true
       notify: Force systemd to reread configs
 
+    # Requirement of nginx_hardening roles
     - name: Install nginx
       ansible.builtin.package:
         name: "nginx"
         state: present
-      become: true
       when: nextcloud_websrv == "nginx"
 
   collections:
     - devsec.hardening
 
   roles:
-    - {role: os_hardening, become: true}
-    - {role: ssh_hardening, become: true}
+    - role: os_hardening
+    - role: ssh_hardening
     - role: nginx_hardening
-      become: true
+    - role: fail2ban
+    - role: ufw
       when: nextcloud_websrv == "nginx"
-    - {role: nextcloud.admin.install_nextcloud, become: true}
+    - role: nextcloud.admin.install_nextcloud
 
   tasks:
-
+    # Introduced by nginx hardening
     - name: Remove shared memory zone
       ansible.builtin.lineinfile:
         path: "{{ nginx_configuration_dir }}/conf.d/90.hardening.conf"
         regexp: "^limit_conn"
         state: absent
-      become: true
       when: nextcloud_websrv == "nginx"
-
-    - name: Import task for configuring fail2ban
-      ansible.builtin.import_tasks: tasks/fail2ban.yml
-
-    - name: Import task for configuring ufw
-      ansible.builtin.import_tasks: tasks/ufw.yml
 
   # Continuation of workaround
   post_tasks:
@@ -66,11 +59,9 @@
         remote_src: true
         src: "{{ systemd_config }}.bak"
         dest: "{{ systemd_config }}"
-      become: true
       notify: Force systemd to reread configs
 
   handlers:
     - name: Force systemd to reread configs
       ansible.builtin.systemd:
         daemon_reload: true
-      become: true

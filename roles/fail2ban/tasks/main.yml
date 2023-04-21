@@ -1,0 +1,13 @@
+---
+# tasks file for fail2ban
+- name: Install fail2ban
+  ansible.builtin.package:
+    name: "fail2ban"
+    state: present
+
+- name: Ensure fail2ban service is running and enabled
+  ansible.builtin.service:
+    name: fail2ban
+    state: started
+    enabled: true
+
