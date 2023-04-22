@@ -4,4 +4,4 @@ This project contains everything that concerns my VPS.
 
 ## Getting started
 
-Copy `group_vars/all.yml` to `vars.yml`. At least fill in the variables that are commented with "mandatory". As these almost certainly contain sensitive information, use ansible-vault to encrypt and edit the file.
+Copy `group_vars/all/vars.yml` to `group_vars/all/vault_vars.yml`. At least fill in the variables that are commented with "mandatory". As these almost certainly contain sensitive information, use ansible-vault to encrypt and edit the file.
