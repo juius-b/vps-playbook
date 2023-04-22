@@ -4,7 +4,7 @@
     name: "{{ user }}"
     groups: sudo
     append: true
-    password: "{{ password|password_hash('sha512') }}"
+    password: "{{ password | password_hash('sha512') }}"
     update_password: "on_create"
 
 - name: Add SSH authorized key for sudo user

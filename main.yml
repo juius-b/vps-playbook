@@ -1,5 +1,6 @@
 ---
-- hosts: all
+- name: Configure the VPS
+  hosts: all
   vars:
     systemd_config: /etc/systemd/system.conf
   become: true
@@ -31,14 +32,11 @@
         state: present
       when: nextcloud_websrv == "nginx"
 
-  collections:
-    - devsec.hardening
-
   roles:
-    - role: ssh_hardening
+    - role: devsec.hardening.ssh_hardening
     - role: nextcloud.admin.install_nextcloud
-    - role: os_hardening
-    - role: nginx_hardening
+    - role: devsec.hardening.os_hardening
+    - role: devsec.hardening.nginx_hardening
       when: nextcloud_websrv == "nginx"
     - role: fail2ban
     - role: ufw
@@ -59,6 +57,7 @@
         remote_src: true
         src: "{{ systemd_config }}.bak"
         dest: "{{ systemd_config }}"
+        mode: preserve
       notify: Force systemd to reread configs
 
   handlers:
