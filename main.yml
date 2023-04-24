@@ -6,36 +6,13 @@
   become: true
 
   pre_tasks:
-    - name: Import task for adding sudo SSH user
-      ansible.builtin.import_tasks: tasks/sudo_ssh_user.yml
-
-    # Workaround for php packages installation issues of install_nextcloud role
-    - name: Backup existing systemd config
-      ansible.builtin.copy:
-        remote_src: true
-        src: "{{ systemd_config }}"
-        dest: "{{ systemd_config }}.bak"
-        mode: preserve
-      tags:
-        - always
-
-    - name: Disable start rate limiting for systemd units
-      ansible.builtin.lineinfile:
-        path: "{{ systemd_config }}"
-        regexp: "^DefaultStartLimitIntervalSec="
-        line: "DefaultStartLimitIntervalSec=0"
-        state: present
-      notify: Force systemd to reread configs
-      tags:
-        - always
-
     # Requirement of nginx_hardening role
     - name: Install nginx
       ansible.builtin.package:
         name: "nginx"
         state: present
       when: nextcloud_websrv == "nginx"
-
+    # Requirement of ufw role
     - name: Install UFW
       ansible.builtin.package:
         name: "ufw"
@@ -46,16 +23,63 @@
       tags: hardening
     - role: geerlingguy.certbot
       tags: certbot
-    - role: nextcloud.admin.install_nextcloud
-    - role: devsec.hardening.os_hardening
-      tags: hardening
-    - role: devsec.hardening.nginx_hardening
-      when: nextcloud_websrv == "nginx"
-      tags: hardening
-    - role: fail2ban
-    - role: ufw
 
   tasks:
+    # Workaround for php packages installation issues of install_nextcloud role
+    - name: Backup existing systemd config
+      ansible.builtin.copy:
+        remote_src: true
+        src: "{{ systemd_config }}"
+        dest: "{{ systemd_config }}.bak"
+        mode: preserve
+
+    - name: Disable start rate limiting for systemd units
+      ansible.builtin.lineinfile:
+        path: "{{ systemd_config }}"
+        regexp: "^DefaultStartLimitIntervalSec="
+        line: "DefaultStartLimitIntervalSec=0"
+        state: present
+      notify: Force systemd to reread configs
+
+    - name: Make config changes have effect
+      ansible.builtin.meta: flush_handlers
+
+    - name: Install and configure Nextcloud with workaround
+      block:
+        - name: Install and configure Nextcloud
+          ansible.builtin.include_role:
+            name: nextcloud.admin.install_nextcloud
+      rescue:
+        # Continuation of workaround
+        - name: Restore systemd config
+          ansible.builtin.copy:
+            remote_src: true
+            src: "{{ systemd_config }}.bak"
+            dest: "{{ systemd_config }}"
+            mode: preserve
+          notify: Force systemd to reread configs
+
+    - name: OS hardening
+      ansible.builtin.include_role:
+        name: devsec.hardening.os_hardening
+      tags: hardening
+
+    - name: Nginx hardening
+      ansible.builtin.include_role:
+        name: devsec.hardening.nginx_hardening
+      when: nextcloud_websrv == "nginx"
+      tags: hardening
+
+    - name: Fail2Ban
+      ansible.builtin.include_role:
+        name: fail2ban
+
+    - name: UFW
+      ansible.builtin.include_role:
+        name: ufw
+
+
+  post_tasks:
     # Introduced by nginx hardening role
     - name: Remove shared memory zone
       ansible.builtin.lineinfile:
@@ -64,21 +88,7 @@
         state: absent
       when: nextcloud_websrv == "nginx"
 
-  # Continuation of workaround
-  post_tasks:
-    - name: Restore systemd config
-      ansible.builtin.copy:
-        remote_src: true
-        src: "{{ systemd_config }}.bak"
-        dest: "{{ systemd_config }}"
-        mode: preserve
-      notify: Force systemd to reread configs
-      tags:
-        - always
-
   handlers:
     - name: Force systemd to reread configs
       ansible.builtin.systemd:
         daemon_reload: true
-      tags:
-        - always
