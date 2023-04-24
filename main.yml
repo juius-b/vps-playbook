@@ -16,6 +16,8 @@
         src: "{{ systemd_config }}"
         dest: "{{ systemd_config }}.bak"
         mode: preserve
+      tags:
+        - always
 
     - name: Disable start rate limiting for systemd units
       ansible.builtin.lineinfile:
@@ -24,6 +26,8 @@
         line: "DefaultStartLimitIntervalSec=0"
         state: present
       notify: Force systemd to reread configs
+      tags:
+        - always
 
     # Requirement of nginx_hardening role
     - name: Install nginx
@@ -34,6 +38,8 @@
 
   roles:
     - role: devsec.hardening.ssh_hardening
+    - role: geerlingguy.git
+    - role: geerlingguy.certbot
     - role: nextcloud.admin.install_nextcloud
     - role: devsec.hardening.os_hardening
     - role: devsec.hardening.nginx_hardening
@@ -59,8 +65,12 @@
         dest: "{{ systemd_config }}"
         mode: preserve
       notify: Force systemd to reread configs
+      tags:
+        - always
 
   handlers:
     - name: Force systemd to reread configs
       ansible.builtin.systemd:
         daemon_reload: true
+      tags:
+        - always

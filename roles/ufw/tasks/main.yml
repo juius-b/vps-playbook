@@ -6,19 +6,18 @@
     port: "{{ item }}"
     proto: tcp
   loop: "{{ ssh_server_ports }}"
+  notify: Enable UFW
 
 - name: Allow all access to tcp port 80
   community.general.ufw:
     rule: allow
     port: '80'
     proto: tcp
+  notify: Enable UFW
 
 - name: Allow all access to tcp port 443
   community.general.ufw:
     rule: allow
     port: '443'
     proto: tcp
-
-- name: Enable UFW
-  community.general.ufw:
-    state: enabled
+  notify: Enable UFW

@@ -4,9 +4,4 @@
   ansible.builtin.package:
     name: "fail2ban"
     state: present
-
-- name: Ensure fail2ban service is running and enabled
-  ansible.builtin.service:
-    name: fail2ban
-    state: started
-    enabled: true
+  notify: Ensure fail2ban service is running and enabled

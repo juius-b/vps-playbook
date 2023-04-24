@@ -2,14 +2,29 @@
 # user: gaveral  # mandatory
 # password: Faraday  # mandatory
 key_path: "~/.ssh/id_rsa.pub"
+# domain: example.com
+
+
+# devsec.hardening.ssh_hardening
+# ports on which ssh-server should listen
+ssh_server_ports: ["22"]  # sshd
+
+
+# geerlingguy.cerbot
+# Parameters used when creating new Certbot certs.
+cerbot_create_if_missing: false
+# certbot_admin_email: mail@example.com  # mandatory
+
+# certbot_certs:
+#   - domains:
+#       - {{ domain }}
 
 
 # nextcloud.admin.install_nextcloud
-#
 # [NEXTCLOUD CONFIG]
 # nextcloud_trusted_domain:
-#   - "{{ ansible_fqdn }}"
-#   - "{{ ansible_default_ipv4.address }}"
+#   - "{{ domain }}"
+
 
 nextcloud_websrv: "nginx"  # "apache2"/"nginx"
 # nextcloud_admin_pwd: "secret"
@@ -18,12 +33,12 @@ nextcloud_websrv: "nginx"  # "apache2"/"nginx"
 ## https://docs.nextcloud.com/server/stable/admin_manual/configuration_server/config_sample_php_parameters.html
 nextcloud_config_settings:
   - {name: "overwriteprotocol", value: "https"}
-  # - {name: "overwritewebroot", value: "/nextcloud"}
-  # - {name: "overwritehost", value: "{{ nextcloud_trusted_domain | first }}"}
-  # - {name: "overwritehost", value: "nextcloud.{{ nextcloud_trusted_domain | first }}"}
-  # - {name: "overwritehost", value: "{{ nextcloud_trusted_domain | first }}:8443"}
-  # - {name: "overwrite.cli.url", value: "https://{{ nextcloud_trusted_domain | first }}/nextcloud"}
-  # - {name: "overwrite.cli.url", value: "https://nextcloud.{{ nextcloud_trusted_domain | first }}"}
+#   - {name: "overwritewebroot", value: "/nextcloud"}
+#   - {name: "overwritehost", value: "{{ domain }}"}
+#   - {name: "overwritehost", value: "nextcloud.{{ domain }}"}
+#   - {name: "overwritehost", value: "{{ domain }}:8443"}
+#   - {name: "overwrite.cli.url", value: "https://{{ domain }}/nextcloud"}
+#   - {name: "overwrite.cli.url", value: "https://nextcloud.{{ domain }}"}
 
 # [DATABASE]
 # nextcloud_db_pwd: "secret"
@@ -39,17 +54,12 @@ nextcloud_tls_dhparam: "{{ nginx_configuration_dir }}/dh{{ nginx_dh_size }}.pem"
 # nextcloud_tls_cert_file: /path/to/cert/cert.crt
 # nextcloud_tls_cert_key_file: /path/to/cert/key/cert.key
 # nextcloud_tls_src_chain: /path/to/cert/chain
-# nextcloud_tls_src_cert: /path/to/cert
-# nextcloud_tls_src_cert_key: /path/to/cert/key
+# nextcloud_tls_src_cert: "/etc/letsencrypt/live/{{ domain }}/fullchain.pem"
+# nextcloud_tls_src_cert_key: "/etc/letsencrypt/live/{{ domain }}/privkey.pem"
 
 # [SYSTEM]
 # nextcloud_mysql_root_pwd: "secret"
 
-
-# devsec.hardening.ssh_hardening
-#
-# ports on which ssh-server should listen
-ssh_server_ports: ["22"]  # sshd
 
 # devsec.hardening.nginx_hardening
 nginx_add_header:
