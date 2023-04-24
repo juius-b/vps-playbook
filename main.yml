@@ -36,14 +36,22 @@
         state: present
       when: nextcloud_websrv == "nginx"
 
+    - name: Install UFW
+      ansible.builtin.package:
+        name: "ufw"
+        state: present
+
   roles:
     - role: devsec.hardening.ssh_hardening
-    - role: geerlingguy.git
+      tags: hardening
     - role: geerlingguy.certbot
+      tags: certbot
     - role: nextcloud.admin.install_nextcloud
     - role: devsec.hardening.os_hardening
+      tags: hardening
     - role: devsec.hardening.nginx_hardening
       when: nextcloud_websrv == "nginx"
+      tags: hardening
     - role: fail2ban
     - role: ufw
 
