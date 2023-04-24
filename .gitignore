@@ -1,5 +1,6 @@
 # Ansible
 **/vault_*
+inventory
 
 # Potential result of nextcloud_install role
 nextcloud_instances/
