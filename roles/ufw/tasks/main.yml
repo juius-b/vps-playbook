@@ -1,5 +1,10 @@
 ---
 # tasks file for ufw
+- name: Install UFW
+  ansible.builtin.package:
+    name: "ufw"
+    state: present
+
 - name: Allow all access to SSH ports
   community.general.ufw:
     rule: allow

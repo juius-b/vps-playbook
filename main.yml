@@ -12,17 +12,6 @@
         name: "nginx"
         state: present
       when: nextcloud_websrv == "nginx"
-    # Requirement of ufw role
-    - name: Install UFW
-      ansible.builtin.package:
-        name: "ufw"
-        state: present
-
-  roles:
-    - role: devsec.hardening.ssh_hardening
-      tags: hardening
-    - role: geerlingguy.certbot
-      tags: certbot
 
   tasks:
     # Workaround for php packages installation issues of install_nextcloud role
@@ -59,9 +48,9 @@
             mode: preserve
           notify: Force systemd to reread configs
 
-    - name: OS hardening
+    - name: SSH hardening
       ansible.builtin.include_role:
-        name: devsec.hardening.os_hardening
+        name: devsec.hardening.ssh_hardening
       tags: hardening
 
     - name: Nginx hardening
@@ -73,10 +62,17 @@
     - name: Fail2Ban
       ansible.builtin.include_role:
         name: fail2ban
+      tags: hardening
 
     - name: UFW
       ansible.builtin.include_role:
         name: ufw
+      tags: hardening
+
+    - name: OS hardening
+      ansible.builtin.include_role:
+        name: devsec.hardening.os_hardening
+      tags: hardening
 
 
   post_tasks:
@@ -87,6 +83,11 @@
         regexp: "^limit_conn"
         state: absent
       when: nextcloud_websrv == "nginx"
+
+    - name: Restart nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
 
   handlers:
     - name: Force systemd to reread configs
